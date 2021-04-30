@@ -1,0 +1,22 @@
+ apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: demoasset-be
+ spec:
+   replicas: 1
+   selector:
+     matchLabels:
+       app: demoasset-be
+   template:
+     metadata:
+       labels:
+         app: demoasset-be
+     spec:
+       containers:
+       - name: demoasset-be
+         image: demoasset-be:latest
+         imagePullPolicy: Never
+         ports:
+         - containerPort: 9080
+       imagePullSecrets:
+       - name: all-icr-io

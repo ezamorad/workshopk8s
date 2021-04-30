@@ -1,0 +1,14 @@
+
+
+<server description="Intro REST Guide Liberty server">
+  
+  <featureManager>
+      <feature>jaxrs-2.1</feature>
+  </featureManager>
+  
+  <httpEndpoint httpPort="9080" httpsPort="9443"
+                id="defaultHttpEndpoint" host="*" />
+
+  <webApplication location="demoasset.war" contextRoot="k8sworkshop"/>
+
+</server>

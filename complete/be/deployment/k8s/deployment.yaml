@@ -1,0 +1,38 @@
+ apiVersion: apps/v1
+ kind: Deployment
+ metadata:
+   name: demoasset-be
+   namespace: demoasset
+ spec:
+   replicas: 1
+   selector:
+     matchLabels:
+       app: demoasset-be
+   template:
+     metadata:
+       labels:
+         app: demoasset-be
+     spec:
+       containers:
+       - name: demoasset-be
+         image: us.icr.io/demoassetez/demoasset-be
+         imagePullPolicy: Always
+         ports:
+         - containerPort: 9080
+       imagePullSecrets:
+       - name: all-icr-io
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: demoasset-be
+#   namespace: demoasset
+# spec:
+#   type: NodePort
+#   selector:
+#     app: demoasset-be
+#   ports:
+#   - protocol: TCP
+#     port: 9080
+#     targetPort: 9080
+#     nodePort: 31000
