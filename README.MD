@@ -41,10 +41,10 @@ For Windows an additional set of tools are needed, GitBash among them. [https://
 Note: Tokens can be revoked and regenerated. 
 
 ### Maven
-1. Install [maven](https://maven.apache.org/)
-2. If you use eclipse, it already comen with a embeeded mvn
-3. For VSCode you can install the extensions (This is my setup)
 
+1. Install [maven](https://maven.apache.org/)
+2. If you use Eclipse, it already comes with a embeeded mvn
+3. For VSCode you can install the extensions (This is my setup)
 
 ### Install Docker on your machine
 
@@ -63,6 +63,7 @@ Install the Docker Community Edition (CE). For Mac and Windows the installation 
 3. Go to the terminal and type:
     - `docker version` to check that the installer version is running. 
     - `docker run hello-world` to verify that Docker is pulling images and running as expected.
+
 
 ### Install kubectl
 
@@ -110,9 +111,7 @@ kubeconfig: Configured
 
 ## Running the basic example
 
-ibmcloud ks cluster config --cluster c2496fgd0ijjt6knhlg0
-kubectl config current-context
-
+The basic example moves a minimal Java project to a local cluster in minikube. The minimal Java project exposes an API to query an simple asset catalog in memory
 
 ### Building the project
 
@@ -124,19 +123,23 @@ The execution should end with success and a new file <your path>/workshop/be/tar
 ### Build the docker image and make it available for minikube cluster
 
 1. Run the command `docker build -t demoasset-be .`
-List the local docker images for 
+2. List the local docker images to check out new image is there
 ```
 $ docker image ls 
 REPOSITORY          TAG       IMAGE ID       CREATED          SIZE
 demoasset-be        latest    09ad6881b17f   24 seconds ago   729MB
 ```
 
-2. Make the new docker image available to minube by running `minikube cache add demoasset-be:latest` (or `minikube image load demoasset-be:latest --daemon`)
+3. Make the new docker image available to minube by running `minikube cache add demoasset-be:latest` (or `minikube image load demoasset-be:latest --daemon`)
 
 ### Explore the cluster
 
-1. Get pods running in the default ***namespace*** 
-`kubectl get pods`
+1. Get pods running in the default ***namespace*** with command `kubectl get pods`
+```
+NAMESPACE     NAME                               READY   STATUS             RESTARTS   AGE
+default       sidecar-pod                        0/2     ImagePullBackOff   0          170d
+default       sleepy                             0/1     ImagePullBackOff   0          170d
+```
 
 <!-- 2. Get pods running all namespaces
 `kubectl get pods --all-namespaces`
@@ -170,13 +173,45 @@ demoasset-be   NodePort    10.102.185.223   <none>        9080:31228/TCP   103m
 192.168.64.3
 ```
 
-7. Get the service exposed port with `$ kubectl describe service demoasset-be` command. Grab the `NodePort` value
+7. Get the service exposed port with `kubectl describe service demoasset-be` command. Grab the `NodePort` value
 ```
 Name:                     demoasset-be
 ...
 NodePort:                 <unset>  31228/TCP
 ...
 ```
+
+8. Check the running app in the minikube ip and service exposed port `192.168.64.3:31228`. The application context is `k8sworkshop`, the application name is `api` and the exposed method is `assets`. Use a browser, or cURL or Postman.
+```
+$ curl http://192.168.64.3:31228/k8sworkshop/api/assets | jq
+[
+  {
+    "details": "Portatil Lenovo",
+    "id": 1,
+    "name": "thinkpad",
+    "owner": "OscarZ",
+    "serial": "1234",
+    "status": "active"
+  },
+  {
+    "details": "Portatil Apple",
+    "id": 2,
+    "name": "macbook",
+    "owner": "JuanR",
+    "serial": "5678",
+    "status": "inactive"
+  },
+  {
+    "details": "Tableta Apple",
+    "id": 3,
+    "name": "ipad",
+    "owner": "MariaC",
+    "serial": "9123",
+    "status": "active"
+  }
+]
+```
+
 
 ### Explore the pod and the service
 
@@ -253,79 +288,14 @@ metadata:
           .: {}
           f:app: {}
           f:pod-template-hash: {}
-        f:ownerReferences:
-          .: {}
-          k:{"uid":"24cae409-f666-457b-a980-af2492adce9d"}:
-            .: {}
-            f:apiVersion: {}
-            f:blockOwnerDeletion: {}
-            f:controller: {}
-            f:kind: {}
-            f:name: {}
-            f:uid: {}
+...
       f:spec:
         f:containers:
           k:{"name":"demoasset-be"}:
             .: {}
             f:image: {}
             f:imagePullPolicy: {}
-            f:name: {}
-            f:ports:
-              .: {}
-              k:{"containerPort":9080,"protocol":"TCP"}:
-                .: {}
-                f:containerPort: {}
-                f:protocol: {}
-            f:resources: {}
-            f:terminationMessagePath: {}
-            f:terminationMessagePolicy: {}
-        f:dnsPolicy: {}
-        f:enableServiceLinks: {}
-        f:imagePullSecrets:
-          .: {}
-          k:{"name":"all-icr-io"}:
-            .: {}
-            f:name: {}
-        f:restartPolicy: {}
-        f:schedulerName: {}
-        f:securityContext: {}
-        f:terminationGracePeriodSeconds: {}
-    manager: kube-controller-manager
-    operation: Update
-    time: "2021-04-30T11:13:09Z"
-  - apiVersion: v1
-    fieldsType: FieldsV1
-    fieldsV1:
-      f:status:
-        f:conditions:
-          k:{"type":"ContainersReady"}:
-            .: {}
-            f:lastProbeTime: {}
-            f:lastTransitionTime: {}
-            f:status: {}
-            f:type: {}
-          k:{"type":"Initialized"}:
-            .: {}
-            f:lastProbeTime: {}
-            f:lastTransitionTime: {}
-            f:status: {}
-            f:type: {}
-          k:{"type":"Ready"}:
-            .: {}
-            f:lastProbeTime: {}
-            f:lastTransitionTime: {}
-            f:status: {}
-            f:type: {}
-        f:containerStatuses: {}
-        f:hostIP: {}
-        f:phase: {}
-        f:podIP: {}
-        f:podIPs:
-          .: {}
-          k:{"ip":"172.17.0.3"}:
-            .: {}
-            f:ip: {}
-        f:startTime: {}
+...
     manager: kubelet
     operation: Update
     time: "2021-04-30T11:13:11Z"
@@ -356,50 +326,7 @@ spec:
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
       name: default-token-kv4z4
       readOnly: true
-  dnsPolicy: ClusterFirst
-  enableServiceLinks: true
-  imagePullSecrets:
-  - name: all-icr-io
-  nodeName: minikube
-  priority: 0
-  restartPolicy: Always
-  schedulerName: default-scheduler
-  securityContext: {}
-  serviceAccount: default
-  serviceAccountName: default
-  terminationGracePeriodSeconds: 30
-  tolerations:
-  - effect: NoExecute
-    key: node.kubernetes.io/not-ready
-    operator: Exists
-    tolerationSeconds: 300
-  - effect: NoExecute
-    key: node.kubernetes.io/unreachable
-    operator: Exists
-    tolerationSeconds: 300
-  volumes:
-  - name: default-token-kv4z4
-    secret:
-      defaultMode: 420
-      secretName: default-token-kv4z4
-status:
-  conditions:
-  - lastProbeTime: null
-    lastTransitionTime: "2021-04-30T11:13:09Z"
-    status: "True"
-    type: Initialized
-  - lastProbeTime: null
-    lastTransitionTime: "2021-04-30T11:13:11Z"
-    status: "True"
-    type: Ready
-  - lastProbeTime: null
-    lastTransitionTime: "2021-04-30T11:13:11Z"
-    status: "True"
-    type: ContainersReady
-  - lastProbeTime: null
-    lastTransitionTime: "2021-04-30T11:13:09Z"
-    status: "True"
-    type: PodScheduled
+...
   containerStatuses:
   - containerID: docker://5aa66805649c3196f4cb80bcf2eda39c875cc5b497b470cc0280382f04a9a2f3
     image: demoasset-be:latest
@@ -422,8 +349,7 @@ status:
 
 ```
 
-
-4. Explore the service devinition with `kubectl describe service <service-name>` 
+4. Explore the service definition with `kubectl describe service <service-name>` 
 ```
 kubectl describe service demoasset-be
 Name:                     demoasset-be
@@ -439,4 +365,158 @@ Endpoints:                172.17.0.3:9080
 Session Affinity:         None
 External Traffic Policy:  Cluster
 Events:                   <none>
+```
+
+### Check the pod's containers logs (application logs)
+
+1. Use the command `kubectl logs <pod-name>`
+```
+$ kubectl logs demoasset-be-58955c76b9-cdr5w
+Launching defaultServer (Open Liberty 20.0.0.10/wlp-1.0.45.cl201020200915-1100) on Eclipse OpenJ9 VM, version 1.8.0_265-b01 (en_US)
+[AUDIT   ] CWWKE0001I: The server defaultServer has been launched.
+[AUDIT   ] CWWKG0093A: Processing configuration drop-ins resource: /opt/ol/wlp/usr/servers/defaultServer/configDropins/defaults/keystore.xml
+[AUDIT   ] CWWKG0093A: Processing configuration drop-ins resource: /opt/ol/wlp/usr/servers/defaultServer/configDropins/defaults/open-default-port.xml
+[AUDIT   ] CWWKZ0058I: Monitoring dropins for applications.
+[AUDIT   ] CWWKT0016I: Web application available (default_host): http://demoasset-be-58955c76b9-cdr5w:9080/k8sworkshop/
+[AUDIT   ] CWWKZ0001I: Application demoasset started in 0.662 seconds.
+[AUDIT   ] CWWKF0012I: The server installed the following features: [jaxrs-2.1, jaxrsClient-2.1, jsonp-1.1, servlet-4.0].
+[AUDIT   ] CWWKF0013I: The server removed the following features: [el-3.0, jsp-2.3, servlet-3.1].
+[AUDIT   ] CWWKF0011I: The defaultServer server is ready to run a smarter planet. The defaultServer server started in 7.676 seconds.
+```
+
+### Execute commands in a container
+```
+$ kubectl exec -it demoasset-be-58955c76b9-cdr5w -c demoasset-be -- bash
+
+bash-4.4$ ls /config/
+apps  configDropins  dropins  server.env  server.xml
+
+bash-4.4$ ls /config/apps/
+demoasset.war
+
+bash-4.4$ cat /logs/messages.log 
+********************************************************************************
+product = Open Liberty 20.0.0.10 (wlp-1.0.45.cl201020200915-1100)
+wlp.install.dir = /opt/ol/wlp/
+server.output.dir = /opt/ol/wlp/output/defaultServer/
+java.home = /opt/java/openjdk/jre
+java.version = 1.8.0_265
+java.runtime = OpenJDK Runtime Environment (1.8.0_265-b01)
+os = Linux (4.19.107; amd64) (en_US)
+process = 1@172.17.0.3
+********************************************************************************
+[4/30/21 11:13:10:887 UTC] 00000001 com.ibm.ws.kernel.launch.internal.FrameworkManager           A CWWKE0001I: The server defaultServer has been launched.
+[4/30/21 11:13:11:928 UTC] 0000001d com.ibm.ws.config.xml.internal.ServerXMLConfiguration        A CWWKG0093A: Processing configuration drop-ins resource: /opt/ol/wlp/usr/servers/defaultServer/configDropins/defaults/keystore.xml
+[4/30/21 11:13:11:941 UTC] 0000001d com.ibm.ws.config.xml.internal.ServerXMLConfiguration        A CWWKG0093A: Processing configuration drop-ins resource: /opt/ol/wlp/usr/servers/defaultServer/configDropins/defaults/open-default-port.xml
+[4/30/21 11:13:12:039 UTC] 00000001 com.ibm.ws.kernel.launch.internal.FrameworkManager           I CWWKE0002I: The kernel started after 1.217 seconds
+[4/30/21 11:13:12:071 UTC] 00000026 com.ibm.ws.kernel.feature.internal.FeatureManager            I CWWKF0007I: Feature update started.
+[4/30/21 11:13:13:046 UTC] 0000001d g.apache.cxf.cxf.core.3.2:1.0.45.cl201020200915-1100(id=96)] I Aries Blueprint packages not available. So namespaces will not be registered
+[4/30/21 11:13:13:134 UTC] 0000001e com.ibm.ws.app.manager.internal.monitor.DropinMonitor        A CWWKZ0058I: Monitoring dropins for applications.
+[4/30/21 11:13:13:656 UTC] 00000029 com.ibm.ws.app.manager.AppMessageHelper                      I CWWKZ0018I: Starting application demoasset.
+[4/30/21 11:13:13:657 UTC] 00000029 bm.ws.app.manager.war.internal.WARDeployedAppInfoFactoryImpl I CWWKZ0136I: The demoasset application is using the archive file at the /opt/ol/wlp/usr/servers/defaultServer/apps/demoasset.war location.
+[4/30/21 11:13:14:008 UTC] 00000029 com.ibm.ws.session.WASSessionCore                            I SESN8501I: The session manager did not find a persistent storage location; HttpSession objects will be stored in the local application server's memory.
+[4/30/21 11:13:14:015 UTC] 00000029 com.ibm.ws.webcontainer.osgi.webapp.WebGroup                 I SRVE0169I: Loading Web Module: REST API Demo.
+[4/30/21 11:13:14:017 UTC] 00000029 com.ibm.ws.webcontainer                                      I SRVE0250I: Web Module REST API Demo has been bound to default_host.
+[4/30/21 11:13:14:018 UTC] 00000029 com.ibm.ws.http.internal.VirtualHostImpl                     A CWWKT0016I: Web application available (default_host): http://demoasset-be-58955c76b9-cdr5w:9080/k8sworkshop/
+[4/30/21 11:13:14:134 UTC] 00000027 com.ibm.ws.session.WASSessionCore                            I SESN0176I: A new session context will be created for application key default_host/k8sworkshop
+[4/30/21 11:13:14:147 UTC] 00000027 com.ibm.ws.util                                              I SESN0172I: The session manager is using the Java default SecureRandom implementation for session ID generation.
+[4/30/21 11:13:14:318 UTC] 00000027 com.ibm.ws.app.manager.AppMessageHelper                      A CWWKZ0001I: Application demoasset started in 0.662 seconds.
+[4/30/21 11:13:14:433 UTC] 0000002a com.ibm.ws.webcontainer.osgi.mbeans.PluginGenerator          I SRVE9103I: A configuration file for a web server plugin was automatically generated for this server at /opt/ol/wlp/output/defaultServer/logs/state/plugin-cfg.xml.
+[4/30/21 11:13:18:342 UTC] 00000026 com.ibm.ws.tcpchannel.internal.TCPPort                       I CWWKO0219I: TCP Channel defaultHttpEndpoint has been started and is now listening for requests on host *  (IPv4) port 9080.
+[4/30/21 11:13:18:493 UTC] 00000026 com.ibm.ws.kernel.feature.internal.FeatureManager            A CWWKF0012I: The server installed the following features: [jaxrs-2.1, jaxrsClient-2.1, jsonp-1.1, servlet-4.0].
+[4/30/21 11:13:18:496 UTC] 00000026 com.ibm.ws.kernel.feature.internal.FeatureManager            A CWWKF0013I: The server removed the following features: [el-3.0, jsp-2.3, servlet-3.1].
+[4/30/21 11:13:18:497 UTC] 00000026 com.ibm.ws.kernel.feature.internal.FeatureManager            I CWWKF0008I: Feature update completed in 6.457 seconds.
+[4/30/21 11:13:18:497 UTC] 00000026 com.ibm.ws.kernel.feature.internal.FeatureManager            A CWWKF0011I: The defaultServer server is ready to run a smarter planet. The defaultServer server started in 7.676 seconds.
+[4/30/21 11:19:46:485 UTC] 00000029 g.apache.cxf.cxf.core.3.2:1.0.45.cl201020200915-1100(id=96)] I Setting the server's publish address to be /api/
+[4/30/21 11:19:46:692 UTC] 00000029 com.ibm.ws.webcontainer.servlet                              I SRVE0242I: [demoasset] [/k8sworkshop] [api.RestApplication]: Initialization successful.
+
+bash-4.4$ exit
+exit
+```
+
+### Increase replica number of the deployment
+
+1. Change the file `basics/be/deployment/k8s/deployment.yaml`, set `replicas:` value to  *3* and save the file
+2. Run the command `kubectl apply -f deployment/k8s/deployment.yaml`
+```
+deployment.apps/demoasset-be configured
+```
+3. Check the new pods are running `kubectl get pods -o wide`.
+```
+NAME                            READY   STATUS             RESTARTS   AGE    IP           NODE       NOMINATED NODE   READINESS GATES
+demoasset-be-58955c76b9-cdr5w   1/1     Running            0          9h     172.17.0.3   minikube   <none>           <none>
+demoasset-be-58955c76b9-rqvl2   1/1     Running            0          82s    172.17.0.9   minikube   <none>           <none>
+demoasset-be-58955c76b9-whktl   1/1     Running            0          82s    172.17.0.8   minikube   <none>           <none>
+sidecar-pod                     0/2     ImagePullBackOff   0          170d   172.17.0.6   minikube   <none>           <none>
+sleepy                          0/1     ImagePullBackOff   0          170d   172.17.0.7   minikube   <none>           <none>
+```
+Note:
+- The `-o wide` flag to bring more pods details
+- The first pod created was not re-created since this was only a scale change
+
+4. Scaling a deployment can also be done by command with `kubectl scale deployment demoasset-be --replicas=<count>`. Let's try by down-scaling to 2 pods:
+```
+$kubectl scale deployment demoasset-be --replicas=2
+deployment.apps/demoasset-be scaled
+
+$ kubectl get pods -o wide
+NAME                            READY   STATUS             RESTARTS   AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+demoasset-be-58955c76b9-cdr5w   1/1     Running            0          9h      172.17.0.3   minikube   <none>           <none>
+demoasset-be-58955c76b9-whktl   1/1     Running            0          5m52s   172.17.0.8   minikube   <none>           <none>
+sidecar-pod                     0/2     ImagePullBackOff   0          170d    172.17.0.6   minikube   <none>           <none>
+sleepy                          0/1     ImagePullBackOff   0          170d    172.17.0.7   minikube   <none>           <none>
+```
+
+### Recreating pods
+Re-create pods is a normal operation in K8s, usually to solve random issues and/or load a new imahe of configuration. There are two ways
+1. Delete the pod and allow the replica set recreate it to maintain the number of replicas running `kubectl delete pod`
+```
+$ kubectl delete pod demoasset-be-58955c76b9-whktl
+pod "demoasset-be-58955c76b9-whktl" deleted
+
+$ kubectl get pods 
+NAME                            READY   STATUS             RESTARTS   AGE
+demoasset-be-58955c76b9-cdr5w   1/1     Running            0          9h
+demoasset-be-58955c76b9-hq7vx   1/1     Running            0          5s
+...
+```
+2. Ask the deployment to bounce its pods with `kubectl rollout restart deployment <deployment-name>`
+```
+kubectl rollout restart deployment demoasset-be
+deployment.apps/demoasset-be restarted
+
+$ kubectl get pods 
+NAME                            READY   STATUS              RESTARTS   AGE
+demoasset-be-58955c76b9-cdr5w   1/1     Running             0          9h
+demoasset-be-58955c76b9-hq7vx   1/1     Terminating         0          2m9s
+demoasset-be-754c594fc4-82cnq   1/1     Running             0          3s
+demoasset-be-754c594fc4-8zb8t   0/1     ContainerCreating   0          1s
+...
+
+$ kubectl get pods 
+(base) Edgars-MacBook-Pro:be ezamora$ kubectl get pods 
+NAME                            READY   STATUS             RESTARTS   AGE
+demoasset-be-754c594fc4-82cnq   1/1     Running            0          110s
+demoasset-be-754c594fc4-8zb8t   1/1     Running            0          108s
+...
+```
+
+### Delete the deployment and service
+
+1. Delete deployment using `kubectl delete deployment <deployment-name>`. All its pods will be removed also.
+```
+$ kubectl delete deployment demoasset-be
+deployment.apps "demoasset-be" deleted
+```
+2. Delete service using `kubectl delete service <service-name>`. The service can not be reached any more
+```
+$ kubectl delete service demoasset-be
+service "demoasset-be" deleted
+
+$ kubectl get svc
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   280d
+
+curl http://192.168.64.3:31228/k8sworkshop/api/assets
+curl: (7) Failed to connect to 192.168.64.3 port 31228: Connection refused
 ```

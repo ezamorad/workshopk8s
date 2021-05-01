@@ -3,7 +3,7 @@
  metadata:
    name: demoasset-be
  spec:
-   replicas: 1
+   replicas: 3
    selector:
      matchLabels:
        app: demoasset-be
@@ -18,5 +18,3 @@
          imagePullPolicy: Never
          ports:
          - containerPort: 9080
-       imagePullSecrets:
-       - name: all-icr-io
