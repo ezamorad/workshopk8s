@@ -130,7 +130,11 @@ REPOSITORY          TAG       IMAGE ID       CREATED          SIZE
 demoasset-be        latest    09ad6881b17f   24 seconds ago   729MB
 ```
 
-3. Make the new docker image available to minube by running `minikube cache add demoasset-be:latest` (or `minikube image load demoasset-be:latest --daemon`)
+3. Make the new docker image available to minukube by running:
+- `minikube cache add demoasset-be:latest` (or `minikube image load demoasset-be:latest --daemon`).
+- `minikube ssh` (to enter the minikube vm terminal)
+- `docker images` (demoasset-be image should be listed)
+- `exit` (to return to your computer terminal)
 
 ### Explore the cluster
 
@@ -520,3 +524,104 @@ kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   280d
 curl http://192.168.64.3:31228/k8sworkshop/api/assets
 curl: (7) Failed to connect to 192.168.64.3 port 31228: Connection refused
 ```
+
+## Running the complete example
+
+
+Go to `complete` folder
+
+### Create namespace
+$ kubectl apply -f deployment/k8s/namespace.yaml 
+namespace/demoasset created
+
+### create Deployments y service for back end
+
+### Create *Secret* for MySQL
+Kubernetes uses Secret to store and manage sensitive information such as passwords, ssh keys and OAuth tokens. 
+
+1. Create user password
+<!-- Use base64 encoded to store 'MYSQL_ROOT_PASSWORD': -->
+
+
+kubectl create secret generic mysqlcreds --from-literal=username=ezamora --from-literal=password=pa55word --dry-run=client -o yaml > be/deployment/k8s/secret.yaml
+
+$ kubectl apply -f deployment/k8s/secret.yaml 
+secret/mysqlcreds created
+
+
+docker pull mysql:latest
+minikube cache add mysql:latest
+
+kubectl apply -f deployment/k8s/mysql-pv.yaml 
+persistentvolume/mysql-pv-volume created
+persistentvolumeclaim/mysql-pv-claim created
+
+kubectl get pods
+NAME                     READY   STATUS             RESTARTS   AGE
+mysql-665d658fd8-dhvnn   1/1     Running            0          15s
+sidecar-pod              0/2     ImagePullBackOff   0          171d
+sleepy                   0/1     ImagePullBackOff   0          171d
+
+$ kubectl exec -it mysql-665d658fd8-dhvnn  -- bash
+root@mysql-665d658fd8-dhvnn:/# env
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_SERVICE_PORT=443
+MYSQL_MAJOR=8.0
+HOSTNAME=mysql-665d658fd8-dhvnn
+PWD=/
+MYSQL_ROOT_PASSWORD=pa55word
+HOME=/root
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+MYSQL_VERSION=8.0.23-1debian10
+GOSU_VERSION=1.12
+TERM=xterm
+SHLVL=1
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PORT=443
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+_=/usr/bin/env
+
+root@k8s-mysql:/# mysql --user=root --password=$MYSQL_ROOT_PASSWORD
+--- Lo siguiente se borra si se reinicia minikube
+mysql> create database demoasset;
+mysql> use demoasset;
+mysql>  create table assets(
+serial_number  char(12) primary key unique,
+name           char(100) not null,
+description    text not null,
+assignee_email char(20) ,
+type           char(50) ,
+data_assignment date ,
+data_registered date 
+);
+
+mysql> create table assets(
+    -> serial_number  char(12) primary key unique,
+    -> name           char(100) not null,
+    -> description    text not null,
+    -> assignee_email char(20) ,
+    -> type           char(50) ,
+    -> data_assignment date ,
+    -> data_registered date 
+    -> );
+
+```
+minikube ssh
+                         _             _            
+            _         _ ( )           ( )           
+  ___ ___  (_)  ___  (_)| |/')  _   _ | |_      __  
+/' _ ` _ `\| |/' _ `\| || , <  ( ) ( )| '_`\  /'__`\
+| ( ) ( ) || || ( ) || || |\`\ | (_) || |_) )(  ___/
+(_) (_) (_)(_)(_) (_)(_)(_) (_)`\___/'(_,__/'`\____)
+
+$ ls /mnt/data/
+'#ib_16384_0.dblwr'   auto.cnf        binlog.000003   ca-key.pem        client-key.pem   ib_logfile0   ibtmp1      performance_schema   server-cert.pem   undo_001
+'#ib_16384_1.dblwr'   binlog.000001   binlog.000004   ca.pem            demoasset        ib_logfile1   mysql       private_key.pem      server-key.pem    undo_002
+'#innodb_temp'        binlog.000002   binlog.index    client-cert.pem   ib_buffer_pool   ibdata1       mysql.ibd   public_key.pem       sys
+```
+
+
+mysql.default.svc.cluster.local

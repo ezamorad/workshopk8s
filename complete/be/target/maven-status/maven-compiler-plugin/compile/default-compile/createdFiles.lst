@@ -1,4 +1,6 @@
 api/HelloWorldRest.class
+api/dao/AssetDao.class
+api/dao/Dao.class
 api/domain/Asset.class
 api/RestApplication.class
 api/services/AssetService.class

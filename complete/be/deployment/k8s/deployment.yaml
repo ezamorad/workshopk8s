@@ -15,8 +15,8 @@
      spec:
        containers:
        - name: demoasset-be
-         image: us.icr.io/demoassetez/demoasset-be
-         imagePullPolicy: Always
+         image: demoasset-be-complete:latest
+         imagePullPolicy: Never
          ports:
          - containerPort: 9080
        imagePullSecrets:

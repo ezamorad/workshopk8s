@@ -1,61 +1,64 @@
 package api.domain;
 
+import java.util.Date;
+
 public class Asset {
-    private Long id;
+
+    private String serial;
 	private String name;
-	private String serial;
-	private String details;
-	private String owner;
-    private String status;
-	
-	public Asset(Long id, String name, String serial, String details, String owner, String status) {
-		super();
-		this.id = id;
-		this.name = name;
-		this.serial = serial;
-        this.details = details;
-		this.owner = owner;
-        this.status = status;
-	}
-	
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
+	private String description;
+	private String assigneeEmail;
+	private Date dateAssignment;
+    private Date dateRegistered;
+
 	public String getSerial() {
-		return serial;
+		return this.serial;
 	}
+
 	public void setSerial(String serial) {
 		this.serial = serial;
 	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDescription() {
+		return this.description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getAssigneeEmail() {
+		return this.assigneeEmail;
+	}
+
+	public void setAssigneeEmail(String assigneeEmail) {
+		this.assigneeEmail = assigneeEmail;
+	}
+
+	public Date getDateAssignment() {
+		return this.dateAssignment;
+	}
+
+	public void setDateAssignment(Date dateAssignment) {
+		this.dateAssignment = dateAssignment;
+	}
+
+	public Date getDateRegistered() {
+		return this.dateRegistered;
+	}
+
+	public void setDateRegistered(Date dateRegistered) {
+		this.dateRegistered = dateRegistered;
+	}
+
 	
-    public String getDetails() {
-		return details;
-	}
-	public void setDetails(String details) {
-		this.details = details;
-	}
-	
-    public String getOwner() {
-		return owner;
-	}
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
-	
-    public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
-	
+
 }
