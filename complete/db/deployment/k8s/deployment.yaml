@@ -28,12 +28,7 @@ spec:
       - image: mysql:latest
         imagePullPolicy: Never
         name: mysql
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysqlcreds
-              key: password
+
         ports:
         - containerPort: 3306
           name: mysql

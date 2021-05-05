@@ -25,3 +25,10 @@
              secretKeyRef:
                name: mysqlcreds
                key: password
+         resources:
+           limits:
+             memory: "400Mi"
+             cpu: "200m"
+           requests:
+             memory: "400Mi"
+             cpu: "100m"

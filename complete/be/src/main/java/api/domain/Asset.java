@@ -8,8 +8,7 @@ public class Asset {
 	private String name;
 	private String description;
 	private String assigneeEmail;
-	private Date dateAssignment;
-    private Date dateRegistered;
+	private String type;
 
 	public String getSerial() {
 		return this.serial;
@@ -27,6 +26,14 @@ public class Asset {
 		this.name = name;
 	}
 
+	public String getType() {
+		return this.type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
 	public String getDescription() {
 		return this.description;
 	}
@@ -42,23 +49,5 @@ public class Asset {
 	public void setAssigneeEmail(String assigneeEmail) {
 		this.assigneeEmail = assigneeEmail;
 	}
-
-	public Date getDateAssignment() {
-		return this.dateAssignment;
-	}
-
-	public void setDateAssignment(Date dateAssignment) {
-		this.dateAssignment = dateAssignment;
-	}
-
-	public Date getDateRegistered() {
-		return this.dateRegistered;
-	}
-
-	public void setDateRegistered(Date dateRegistered) {
-		this.dateRegistered = dateRegistered;
-	}
-
-	
 
 }

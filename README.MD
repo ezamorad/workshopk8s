@@ -1,6 +1,9 @@
 # Kubernetes workshop
 
-This repo contains two different examples of moving workloads to a K8s cluster in Minikube
+This repo contains two different examples of moving workloads to a K8s cluster in Minikube.
+
+### Disclaimer:
+This workshop materials (information, instructions, code) is work in progress. In its current status may still contain the bad practices for production applications and profesional programming because it is focused on exploring K8s concepts (maybe it will be kept like that), for example code, it is a very very simple app becuase Java is not the focus here.
 
 
 ## Prerequisites
@@ -27,7 +30,7 @@ For Windows an additional set of tools are needed, GitBash among them. [https://
 1. Open the browser to https://github.com
 2. Create your account with user and password
 
-### Configure Personal Token in GitHub (Optional, and depends if you have/created an GitHub account)
+### Configure Personal Token in GitHub (Optional, and depends if you have or created an GitHub account)
 
 1. Go to https://github.com 
 2. Click on your avatar and click on the **settings** option
@@ -117,7 +120,7 @@ The basic example moves a minimal Java project to a local cluster in minikube. T
 
 1. Navigate to the `basics\be` folder
 2. Run the command `mvn clean package`
-The execution should end with success and a new file <your path>/workshop/be/target/demoasset.war
+The execution should end with success and a new file <your path>basic/be/target/demoasset.war
 
 
 ### Build the docker image and make it available for minikube cluster
@@ -525,91 +528,99 @@ curl http://192.168.64.3:31228/k8sworkshop/api/assets
 curl: (7) Failed to connect to 192.168.64.3 port 31228: Connection refused
 ```
 
+
 ## Running the complete example
 
+The complete example presents two components: a containerized MySQL database and a backend able to connect to the database. 
 
-Go to `complete` folder
+The new concepts to explore here are Volumnes, Namespaces, Secrets and Resourse quotas
 
-### Create namespace
-$ kubectl apply -f deployment/k8s/namespace.yaml 
-namespace/demoasset created
 
-### create Deployments y service for back end
+### Deploy the containerized MySQL
+
+To work on this project please go to the `complete/db` folder
 
 ### Create *Secret* for MySQL
-Kubernetes uses Secret to store and manage sensitive information such as passwords, ssh keys and OAuth tokens. 
 
-1. Create user password
-<!-- Use base64 encoded to store 'MYSQL_ROOT_PASSWORD': -->
-
-
-kubectl create secret generic mysqlcreds --from-literal=username=ezamora --from-literal=password=pa55word --dry-run=client -o yaml > be/deployment/k8s/secret.yaml
+1. Create user password for MySQL instance and store in a file
+```
+kubectl create secret generic mysqlcreds --from-literal=username=ezamora --from-literal=password=pa55word --dry-run=client -o yaml > bd/deployment/k8s/secret.yaml
 
 $ kubectl apply -f deployment/k8s/secret.yaml 
 secret/mysqlcreds created
+```
 
-
-docker pull mysql:latest
-minikube cache add mysql:latest
-
+2. Create the PersistentVolume and PersistentVolumeCLaim
+```
 kubectl apply -f deployment/k8s/mysql-pv.yaml 
 persistentvolume/mysql-pv-volume created
 persistentvolumeclaim/mysql-pv-claim created
+```
+
+3. Pull a docker imahe of MySQL and make it available to the Minikube cluster
+```
+docker pull mysql:latest
+minikube cache add mysql:latest
+```
+
+4. Create the MySQL deployment and service
+```
+kubectl apply -f deployment/k8s/deployment.yaml 
+service/mysql created
+deployment/mysql created
 
 kubectl get pods
 NAME                     READY   STATUS             RESTARTS   AGE
 mysql-665d658fd8-dhvnn   1/1     Running            0          15s
 sidecar-pod              0/2     ImagePullBackOff   0          171d
 sleepy                   0/1     ImagePullBackOff   0          171d
+```
 
+The service is a ClusterIP service, so it can not be reached out of the cluster.
+The DNS name for the MySQL is mysql.default.svc.cluster.local 
+
+5. Explore the MySQL Pod - the secret
+```
 $ kubectl exec -it mysql-665d658fd8-dhvnn  -- bash
 root@mysql-665d658fd8-dhvnn:/# env
-KUBERNETES_SERVICE_PORT_HTTPS=443
-KUBERNETES_SERVICE_PORT=443
-MYSQL_MAJOR=8.0
-HOSTNAME=mysql-665d658fd8-dhvnn
-PWD=/
+...
 MYSQL_ROOT_PASSWORD=pa55word
-HOME=/root
-KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
-MYSQL_VERSION=8.0.23-1debian10
-GOSU_VERSION=1.12
-TERM=xterm
-SHLVL=1
-KUBERNETES_PORT_443_TCP_PROTO=tcp
-KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
-KUBERNETES_SERVICE_HOST=10.96.0.1
-KUBERNETES_PORT=tcp://10.96.0.1:443
-KUBERNETES_PORT_443_TCP_PORT=443
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-_=/usr/bin/env
+...
+```
 
-root@k8s-mysql:/# mysql --user=root --password=$MYSQL_ROOT_PASSWORD
---- Lo siguiente se borra si se reinicia minikube
-mysql> create database demoasset;
-mysql> use demoasset;
-mysql>  create table assets(
+Note that only one secret was added, even if the definition lists two. This is because the deployment only declared one.
+
+6. Create a database and table in the MySQL
+This is the script for the table:
+```
+create table assets(
 serial_number  char(12) primary key unique,
 name           char(100) not null,
 description    text not null,
 assignee_email char(20) ,
-type           char(50) ,
-data_assignment date ,
-data_registered date 
+type           char(50)
 );
+```
 
+The commands to run is:
+```
+root@k8s-mysql:/# mysql --user=root --password=$MYSQL_ROOT_PASSWORD
+--- Lo siguiente se borra si se reinicia minikube
+mysql> create database demoasset;
+mysql> use demoasset;
 mysql> create table assets(
     -> serial_number  char(12) primary key unique,
     -> name           char(100) not null,
     -> description    text not null,
     -> assignee_email char(20) ,
-    -> type           char(50) ,
-    -> data_assignment date ,
-    -> data_registered date 
+    -> type           char(50)
     -> );
+```
+
+7. Enter Minikube node and check the table was created at cluster level
 
 ```
-minikube ssh
+# minikube ssh
                          _             _            
             _         _ ( )           ( )           
   ___ ___  (_)  ___  (_)| |/')  _   _ | |_      __  
@@ -617,11 +628,125 @@ minikube ssh
 | ( ) ( ) || || ( ) || || |\`\ | (_) || |_) )(  ___/
 (_) (_) (_)(_)(_) (_)(_)(_) (_)`\___/'(_,__/'`\____)
 
-$ ls /mnt/data/
-'#ib_16384_0.dblwr'   auto.cnf        binlog.000003   ca-key.pem        client-key.pem   ib_logfile0   ibtmp1      performance_schema   server-cert.pem   undo_001
-'#ib_16384_1.dblwr'   binlog.000001   binlog.000004   ca.pem            demoasset        ib_logfile1   mysql       private_key.pem      server-key.pem    undo_002
-'#innodb_temp'        binlog.000002   binlog.index    client-cert.pem   ib_buffer_pool   ibdata1       mysql.ibd   public_key.pem       sys
+# ls -l /mnt/data/
+...
+demoasset 
+...
+```
+
+8. Check cluster persistence by restarting the minikube cluster
+
+```
+$ minikube stop
+$ minikube start
+# minikube ssh
+# ls -l /mnt/data/
+```
+
+Repeat steps 5 and 6 to re-create the database and table
+
+
+### Deploy the Backend application
+
+To work on this project please go to the `complete/be` folder
+
+1. Create namespace `demoasset`
+```
+$ kubectl apply -f deployment/k8s/namespace.yaml 
+namespace/demoasset created
+```
+
+2. Build the project
+```
+$ mvn clean package
+```
+The execution should end with success and a new file <your path>complete/be/target/demoasset-be-complete.war
+
+3. Build the local docker image
+```
+docker build -t demoasset-be-complete .
+```
+
+4. Share the image to minikube
+```
+minikube cache add demoasset-be-complete:latest
+```
+
+5. Create Deployments y service for backend
+```
+kubectl apply -f deployment/k8s/deployment.yaml 
+kubectl apply -f deployment/k8s/service.yaml 
+```
+
+6. Get the IP to access the minikube k8s node with the command `minikube ip`
+```
+192.168.64.3
+```
+
+7. Get the service exposed port with `kubectl describe service demoasset-be -n demoasset` command. Grab the `NodePort` value
+```
+Name:                     demoasset-be
+...
+NodePort:                 <unset>  31944/TCP
+...
+```
+
+8. Check the running app in the minikube ip and service exposed port `192.168.64.3:31944`. The application context is `k8sworkshop`, the application name is `api` and the exposed method is `assets`. Use a browser, or cURL or Postman.
+
+First add something to the database
+```
+curl --location --request POST '192.168.64.3:31944/k8sworkshop/api/assets' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "serial": "2345",
+	"name": "Thinkpad",
+	"description": "Laptop Lenovo",
+	"assigneeEmail": "yoda@company.com",
+  "type": "Laptop"
+}'
+```
+
+Then query for the values
+```
+curl --location --request GET 'http://192.168.64.3:31944/k8sworkshop/api/assets'
 ```
 
 
-mysql.default.svc.cluster.local
+### A bit of Capacity management
+```
+$ kubectl describe pod demoasset-be-84fbf45b7b-58m6m  -n demoasset
+...
+QoS Class:       BestEffort
+...
+
+$ kubectl apply -f deployment/k8s/resource-quota.yaml -n demoasset
+resourcequota/mem-cpu created
+
+$ kubectl apply -f deployment/k8s/deployment-resourcequota.yaml -n demoasset
+deployment.apps/demoasset-be configured
+
+$ kubectl get pods -n demoasset
+NAME                            READY   STATUS        RESTARTS   AGE
+demoasset-be-556984c46-4ccrm    1/1     Running       0          2s
+demoasset-be-5cc449d788-6ht5q   1/1     Terminating   0          94s
+
+$ kubectl scale deployment demoasset-be --replicas=2 -n demoasset
+deployment.apps/demoasset-be scaled
+
+$ kubectl get pods -n demoasset
+NAME                           READY   STATUS    RESTARTS   AGE
+demoasset-be-556984c46-4ccrm   1/1     Running   0          22s
+demoasset-be-556984c46-dctvp   1/1     Running   0          2s
+
+$ kubectl scale deployment demoasset-be --replicas=3 -n demoasset
+deployment.apps/demoasset-be scaled
+
+$ kubectl get pods -n demoasset
+NAME                           READY   STATUS    RESTARTS   AGE
+demoasset-be-556984c46-4ccrm   1/1     Running   0          31s
+demoasset-be-556984c46-dctvp   1/1     Running   0          11s
+
+$ kubectl describe pod demoasset-be-556984c46-4ccrm  -n demoasset
+...
+QoS Class:       Burstable
+```
