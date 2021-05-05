@@ -118,9 +118,9 @@ The basic example moves a minimal Java project to a local cluster in minikube. T
 
 ### Building the project
 
-1. Navigate to the `basics\be` folder
+1. Navigate to the `basic/be` folder
 2. Run the command `mvn clean package`
-The execution should end with success and a new file <your path>basic/be/target/demoasset.war
+The execution should end with success and a new file `<your path>basic/be/target/demoasset.war`
 
 
 ### Build the docker image and make it available for minikube cluster
@@ -133,7 +133,7 @@ REPOSITORY          TAG       IMAGE ID       CREATED          SIZE
 demoasset-be        latest    09ad6881b17f   24 seconds ago   729MB
 ```
 
-3. Make the new docker image available to minukube by running:
+3. Make the new docker image available to minikube by running:
 - `minikube cache add demoasset-be:latest` (or `minikube image load demoasset-be:latest --daemon`).
 - `minikube ssh` (to enter the minikube vm terminal)
 - `docker images` (demoasset-be image should be listed)
@@ -141,21 +141,19 @@ demoasset-be        latest    09ad6881b17f   24 seconds ago   729MB
 
 ### Explore the cluster
 
-1. Get pods running in the default ***namespace*** with command `kubectl get pods`
+1. Check the nodes in teh cluster
+```
+$ kubectl get nodes
+NAME       STATUS   ROLES    AGE    VERSION
+minikube   Ready    master   284d   v1.18.0
+```
+
+2. Get pods running in the default ***namespace*** with command `kubectl get pods`
 ```
 NAMESPACE     NAME                               READY   STATUS             RESTARTS   AGE
 default       sidecar-pod                        0/2     ImagePullBackOff   0          170d
 default       sleepy                             0/1     ImagePullBackOff   0          170d
 ```
-
-<!-- 2. Get pods running all namespaces
-`kubectl get pods --all-namespaces`
-
-3. Get pods running a specific container
-`kubectl get pods -n kube-system`
-
-4. List namespaces
-`kubectl get namespaces` -->
 
 ### Create the application and expose it
 1. Navigate to `basics/be/deployment/k8s`
@@ -552,12 +550,12 @@ secret/mysqlcreds created
 
 2. Create the PersistentVolume and PersistentVolumeCLaim
 ```
-kubectl apply -f deployment/k8s/mysql-pv.yaml 
+kubectl apply -f deployment/k8s/persistent-volume.yaml 
 persistentvolume/mysql-pv-volume created
 persistentvolumeclaim/mysql-pv-claim created
 ```
 
-3. Pull a docker imahe of MySQL and make it available to the Minikube cluster
+3. Pull a docker image of MySQL and make it available to the Minikube cluster
 ```
 docker pull mysql:latest
 minikube cache add mysql:latest
@@ -604,8 +602,8 @@ type           char(50)
 
 The commands to run is:
 ```
-root@k8s-mysql:/# mysql --user=root --password=$MYSQL_ROOT_PASSWORD
---- Lo siguiente se borra si se reinicia minikube
+# mysql --user=root --password=$MYSQL_ROOT_PASSWORD
+
 mysql> create database demoasset;
 mysql> use demoasset;
 mysql> create table assets(
@@ -615,6 +613,14 @@ mysql> create table assets(
     -> assignee_email char(20) ,
     -> type           char(50)
     -> );
+mysql> exit
+
+# ls /var/lib/mysql
+...
+demoasset 
+...
+
+#exit
 ```
 
 7. Enter Minikube node and check the table was created at cluster level
@@ -632,6 +638,8 @@ mysql> create table assets(
 ...
 demoasset 
 ...
+
+#exit
 ```
 
 8. Check cluster persistence by restarting the minikube cluster
@@ -641,6 +649,7 @@ $ minikube stop
 $ minikube start
 # minikube ssh
 # ls -l /mnt/data/
+(empty result)
 ```
 
 Repeat steps 5 and 6 to re-create the database and table
@@ -654,6 +663,14 @@ To work on this project please go to the `complete/be` folder
 ```
 $ kubectl apply -f deployment/k8s/namespace.yaml 
 namespace/demoasset created
+```
+
+2. Create user password for MySQL instance and store in a file *in the namespace*
+```
+kubectl create secret generic mysqlcreds --from-literal=username=ezamora --from-literal=password=pa55word --dry-run=client -o yaml > bd/deployment/k8s/secret.yaml
+
+$ kubectl apply -f deployment/k8s/secret.yaml 
+secret/mysqlcreds created
 ```
 
 2. Build the project
@@ -685,7 +702,6 @@ kubectl apply -f deployment/k8s/service.yaml
 
 7. Get the service exposed port with `kubectl describe service demoasset-be -n demoasset` command. Grab the `NodePort` value
 ```
-Name:                     demoasset-be
 ...
 NodePort:                 <unset>  31944/TCP
 ...
@@ -712,7 +728,11 @@ curl --location --request GET 'http://192.168.64.3:31944/k8sworkshop/api/assets'
 ```
 
 
-### A bit of Capacity management
+### A bit of Capacity management and QoS
+
+- Capacity: Ensure recources Memory-CPU-Storage for the running pods. E.g. If each enviroment is running on a namespace, an my cluster has 20GB Memory, how do I protect the production malespace to reserve that amount and limit the other namespaces
+- QoS: What should happen to the pods when low on reources or priority pods come
+
 ```
 $ kubectl describe pod demoasset-be-84fbf45b7b-58m6m  -n demoasset
 ...
