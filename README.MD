@@ -3,7 +3,7 @@
 This repo contains two different examples of moving workloads to a K8s cluster in Minikube.
 
 ### Disclaimer:
-This workshop materials (information, instructions, code) is work in progress. In its current status may still contain the bad practices for production applications and profesional programming because it is focused on exploring K8s concepts (maybe it will be kept like that), for example code, it is a very very simple app becuase Java is not the focus here.
+This workshop materials (information, instructions, code) is work in progress. In its current status may still contain bad practices for production applications and profesional programming because it is focused on exploring K8s concepts (maybe it will be kept like that), for example, the code is a very very simple app because Java is not the focus here.
 
 
 ## Prerequisites
@@ -730,8 +730,8 @@ curl --location --request GET 'http://192.168.64.3:31944/k8sworkshop/api/assets'
 
 ### A bit of Capacity management and QoS
 
-- Capacity: Ensure recources Memory-CPU-Storage for the running pods. E.g. If each enviroment is running on a namespace, an my cluster has 20GB Memory, how do I protect the production malespace to reserve that amount and limit the other namespaces
-- QoS: What should happen to the pods when low on reources or priority pods come
+- Capacity: Ensure resources Memory-CPU-Storage for the running pods. For example, If each enviroment is running on a namespace, and my cluster has 20GB Memory, how do I protect the production namespace to reserve that amount and limit the other namespaces
+- QoS: What should happen to the pods when low on resources or priority pods come
 
 ```
 $ kubectl describe pod demoasset-be-84fbf45b7b-58m6m  -n demoasset
