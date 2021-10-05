@@ -531,7 +531,7 @@ curl: (7) Failed to connect to 192.168.64.3 port 31228: Connection refused
 
 The complete example presents two components: a containerized MySQL database and a backend able to connect to the database. 
 
-The new concepts to explore here are Volumnes, Namespaces, Secrets and Resourse quotas
+The new concepts to explore here are Volumes, Namespaces, Secrets and Resource quotas
 
 
 ### Deploy the containerized MySQL
@@ -600,7 +600,7 @@ type           char(50)
 );
 ```
 
-The commands to run is:
+The commands to run are:
 ```
 # mysql --user=root --password=$MYSQL_ROOT_PASSWORD
 
@@ -689,7 +689,7 @@ docker build -t demoasset-be-complete .
 minikube cache add demoasset-be-complete:latest
 ```
 
-5. Create Deployments y service for backend
+5. Create Deployments and Service for backend
 ```
 kubectl apply -f deployment/k8s/deployment.yaml 
 kubectl apply -f deployment/k8s/service.yaml 
