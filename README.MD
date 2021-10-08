@@ -186,7 +186,28 @@ NodePort:                 <unset>  31228/TCP
 ...
 ```
 
+NOTE 1: In new minukube/K8S versions, steps 6 and 7 should be replaced by the next command
+```
+$ minikube service demoasset-be
+
+|-----------|--------------|-------------|---------------------------|
+| NAMESPACE |     NAME     | TARGET PORT |            URL            |
+|-----------|--------------|-------------|---------------------------|
+| default   | demoasset-be |        9080 | http://192.168.49.2:32683 |
+|-----------|--------------|-------------|---------------------------|
+🏃  Starting tunnel for service demoasset-be.
+|-----------|--------------|-------------|------------------------|
+| NAMESPACE |     NAME     | TARGET PORT |          URL           |
+|-----------|--------------|-------------|------------------------|
+| default   | demoasset-be |             | http://127.0.0.1:51374 |
+|-----------|--------------|-------------|------------------------|
+```
+Even though, port 31228 is exposed via NodePort in minikube, minikube will still not expose it because it will use its own external port to listen to this service. Minikube tunnels the service to expose to the outer world. The above command shows the exposed port.
+
 8. Check the running app in the minikube ip and service exposed port `192.168.64.3:31228`. The application context is `k8sworkshop`, the application name is `api` and the exposed method is `assets`. Use a browser, or cURL or Postman.
+
+NOTE 2: use http://127.0.0.1:51374 as per description in Note 1
+
 ```
 $ curl http://192.168.64.3:31228/k8sworkshop/api/assets | jq
 [
