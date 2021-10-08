@@ -688,7 +688,7 @@ namespace/demoasset created
 
 2. Create user password for MySQL instance and store in a file *in the namespace*
 ```
-kubectl create secret generic mysqlcreds --from-literal=username=ezamora --from-literal=password=pa55word --dry-run=client -o yaml > bd/deployment/k8s/secret.yaml
+kubectl create secret generic mysqlcreds --from-literal=username=ezamora --from-literal=password=pa55word --dry-run=client -o yaml -n demoasset > bd/deployment/k8s/secret.yaml
 
 $ kubectl apply -f deployment/k8s/secret.yaml 
 secret/mysqlcreds created
